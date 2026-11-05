@@ -1,0 +1,42 @@
+<!doctype html><html lang="mr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>परिपाठ</title>
+<meta name="theme-color" content="#0f766e">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans Devanagari",sans-serif;background:#f1f5f9;color:#0f172a}
+header{background:#0f766e;color:#fff;padding:14px 16px;font-size:20px;font-weight:800}
+main{max-width:640px;margin:0 auto;padding:14px}
+.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px #0001}
+.card h2{margin:0 0 10px;font-size:22px}
+.row{display:flex;gap:10px;align-items:center}
+.play{flex:0 0 auto;width:64px;height:64px;border-radius:50%;border:0;background:#0f766e;color:#fff;font-size:28px}
+.play.on{background:#dc2626}
+input[type=range]{width:100%;height:32px}.t{font-size:13px;color:#475569;display:flex;justify-content:space-between}
+.opt{margin-top:8px;font-size:15px}.opt label{display:inline-flex;gap:6px;align-items:center}
+.lyr{white-space:pre-wrap;font-size:24px;line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0}
+.lyr:empty{display:none}
+</style></head><body>
+<header>📚 परिपाठ</header><main id="m"></main>
+<script>
+var ITEMS=[
+ {id:'rashtrageet',icon:'🇮🇳',name:'राष्ट्रगीत',src:'rashtrageet.mp3',txt:'rashtrageet.txt'},
+ {id:'maharashtra',icon:'🚩',name:'महाराष्ट्रगीत',src:'maharashtra-geet.mp3',txt:'maharashtra-geet.txt'}
+];
+var cur=null;
+function fmt(s){s=Math.floor(s||0);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+ITEMS.forEach(function(it){
+  var c=document.createElement('div');c.className='card';
+  c.innerHTML='<h2>'+it.icon+' '+it.name+'</h2><div class="row"><button class="play" aria-label="चालवा">▶</button><div style="flex:1"><input type="range" min="0" max="1000" value="0"><div class="t"><span class="a">0:00</span><span class="b">0:00</span></div></div></div><div class="opt"><label><input type="checkbox" class="rp"> पुन्हा पुन्हा वाजवा</label></div><div class="lyr"></div>';
+  document.getElementById('m').appendChild(c);
+  var au=new Audio();au.preload='metadata';au.src=it.src;
+  var btn=c.querySelector('.play'),rg=c.querySelector('input[type=range]'),A=c.querySelector('.a'),B=c.querySelector('.b'),rp=c.querySelector('.rp');
+  au.onloadedmetadata=function(){B.textContent=fmt(au.duration)};
+  au.ontimeupdate=function(){A.textContent=fmt(au.currentTime);if(au.duration)rg.value=au.currentTime/au.duration*1000};
+  au.onended=function(){if(rp.checked){au.currentTime=0;au.play()}else{btn.textContent='▶';btn.classList.remove('on')}};
+  rg.oninput=function(){if(au.duration)au.currentTime=rg.value/1000*au.duration};
+  btn.onclick=function(){
+    if(au.paused){if(cur&&cur!==au){cur.pause()}cur=au;au.play();btn.textContent='⏸';btn.classList.add('on')}
+    else{au.pause();btn.textContent='▶';btn.classList.remove('on')}
+  };
+  au.onpause=function(){btn.textContent='▶';btn.classList.remove('on')};
+  fetch(it.txt).then(function(r){return r.ok?r.text():''}).then(function(t){c.querySelector('.lyr').textContent=t.trim()}).catch(function(){});
+});
+</script></body></html>
