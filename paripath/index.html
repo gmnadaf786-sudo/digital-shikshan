@@ -20,7 +20,8 @@ var ITEMS=[
  {id:'rashtrageet',icon:'🇮🇳',name:'राष्ट्रगीत',src:'rashtrageet.mp3',txt:'rashtrageet.txt'},
  {id:'maharashtra',icon:'🚩',name:'महाराष्ट्रगीत',src:'maharashtra-geet.mp3',txt:'maharashtra-geet.txt'}
 ];
-var cur=null;
+var cur=null;var Q=(location.search.match(/[?&]i=(\w+)/)||[])[1];
+if(Q){var only=ITEMS.filter(function(x){return x.id===Q});if(only.length){ITEMS=only;document.querySelector('header').style.display='none'}}
 function fmt(s){s=Math.floor(s||0);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
 ITEMS.forEach(function(it){
   var c=document.createElement('div');c.className='card';
