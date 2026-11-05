@@ -6,11 +6,17 @@
 button{margin-top:18px;padding:14px 26px;border:0;border-radius:12px;background:#facc15;color:#0f172a;font-size:18px;font-weight:700}
 #fr{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}</style></head><body>
 <div id="sp"><img src="icon-192.png" alt=""><h1>Digital Shikshan Manch</h1><p>डिजिटल शिक्षण मंच</p><p id="m">उघडत आहे…</p><button id="b" style="display:none" onclick="go()">▶ उघडा</button></div>
-<iframe id="fr" title="Digital Shikshan Manch" allow="fullscreen"></iframe>
+<iframe id="fr" title="Digital Shikshan Manch" allow="fullscreen; microphone; autoplay; clipboard-write; camera"></iframe>
 <script>
 var U='https://script.google.com/macros/s/AKfycbySme1rFcvWN-9xS_BmE2dMiHqOL8P3gvhs2-BGN6aZxi2d-4xHZJOOuH5kHroLTU4x/exec';
-function go(){location.replace(U)}
+function openTop(){location.replace(U)}
+function go(){
+  var f=document.getElementById('fr'),done=false;
+  f.onload=function(){done=true;f.style.display='block';document.getElementById('sp').style.display='none'};
+  f.src=U;
+  setTimeout(function(){if(!done){document.getElementById('m').textContent='उघडण्यास वेळ लागत आहे…';var b=document.getElementById('b');b.style.display='inline-block';b.onclick=openTop}},15000);
+}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 if(!navigator.onLine){document.getElementById('m').textContent='इंटरनेट चालू करा, मग उघडा.';document.getElementById('b').style.display='inline-block'}
-else setTimeout(go,600);
+else go();
 </script></body></html>
