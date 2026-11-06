@@ -13,6 +13,7 @@ input[type=range]{width:100%;height:32px}.t{font-size:13px;color:#475569;display
 .opt{margin-top:8px;font-size:15px}.opt label{display:inline-flex;gap:6px;align-items:center}
 .lyr{white-space:pre-wrap;font-size:24px;line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0}
 .lyr:empty{display:none}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button{flex:1;padding:12px;border:0;border-radius:12px;font-size:17px;font-weight:800;background:#e2e8f0;color:#334155}.tabs button.on{background:#0f766e;color:#fff}.emp{text-align:center;color:#64748b;padding:24px;font-size:16px}
 </style></head><body>
 <header>📚 परिपाठ</header><main id="m"></main>
 <script>
@@ -20,14 +21,15 @@ var ITEMS=[
  {id:'rashtrageet',icon:'🇮🇳',name:'राष्ट्रगीत',src:'rashtrageet.mp3',txt:'rashtrageet.txt'},
  {id:'maharashtra',icon:'🚩',name:'महाराष्ट्रगीत',src:'maharashtra-geet.mp3',txt:'maharashtra-geet.txt'}
 ];
-var cur=null;var Q=(location.search.match(/[?&]i=(\w+)/)||[])[1];
-if(Q){var only=ITEMS.filter(function(x){return x.id===Q});if(only.length){ITEMS=only;document.querySelector('header').style.display='none'}}
+var cur=null;
+var Q=(location.search.match(/[?&]i=(\w+)/)||[])[1],G=(location.search.match(/[?&]g=(\w+)/)||[])[1];
 function fmt(s){s=Math.floor(s||0);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
-ITEMS.forEach(function(it){
+function makeCard(it,box){
   var c=document.createElement('div');c.className='card';
-  c.innerHTML='<h2>'+it.icon+' '+it.name+'</h2><div class="row"><button class="play" aria-label="चालवा">▶</button><div style="flex:1"><input type="range" min="0" max="1000" value="0"><div class="t"><span class="a">0:00</span><span class="b">0:00</span></div></div></div><div class="opt"><label><input type="checkbox" class="rp"> पुन्हा पुन्हा वाजवा</label></div><div class="lyr"></div>';
-  document.getElementById('m').appendChild(c);
-  var au=new Audio();au.preload='metadata';au.src=it.src;
+  c.innerHTML='<h2></h2><div class="row"><button class="play" aria-label="चालवा">▶</button><div style="flex:1"><input type="range" min="0" max="1000" value="0"><div class="t"><span class="a">0:00</span><span class="b">0:00</span></div></div></div><div class="opt"><label><input type="checkbox" class="rp"> पुन्हा पुन्हा वाजवा</label></div><div class="lyr"></div>';
+  c.querySelector('h2').textContent=(it.icon?it.icon+' ':'🎵 ')+it.name;
+  box.appendChild(c);
+  var au=new Audio();au.preload='none';au.src=it.src;
   var btn=c.querySelector('.play'),rg=c.querySelector('input[type=range]'),A=c.querySelector('.a'),B=c.querySelector('.b'),rp=c.querySelector('.rp');
   au.onloadedmetadata=function(){B.textContent=fmt(au.duration)};
   au.ontimeupdate=function(){A.textContent=fmt(au.currentTime);if(au.duration)rg.value=au.currentTime/au.duration*1000};
@@ -38,6 +40,26 @@ ITEMS.forEach(function(it){
     else{au.pause();btn.textContent='▶';btn.classList.remove('on')}
   };
   au.onpause=function(){btn.textContent='▶';btn.classList.remove('on')};
-  fetch(it.txt).then(function(r){return r.ok?r.text():''}).then(function(t){c.querySelector('.lyr').textContent=t.trim()}).catch(function(){});
-});
+  if(it.txt)fetch(it.txt).then(function(r){return r.ok?r.text():''}).then(function(t){c.querySelector('.lyr').textContent=t.trim()}).catch(function(){});
+}
+var M=document.getElementById('m');
+if(G){
+  document.querySelector('header').style.display='none';
+  var LN=[['hi','हिंदी'],['mr','मराठी'],['kn','ಕನ್ನಡ']],lang='mr',DB={};
+  var tabs=document.createElement('div');tabs.className='tabs';M.appendChild(tabs);
+  var list=document.createElement('div');M.appendChild(list);
+  function show(){
+    if(cur){try{cur.pause()}catch(e){}cur=null}
+    Array.prototype.forEach.call(tabs.children,function(b){b.classList.toggle('on',b.dataset.l===lang)});
+    list.innerHTML='';var arr=((DB[G]||{})[lang])||[];
+    if(!arr.length){list.innerHTML='<div class="emp">या भाषेची गीते लवकरच येथे येतील.</div>';return}
+    arr.forEach(function(s){makeCard({name:s.t,src:s.f},list)});
+  }
+  LN.forEach(function(x){var b=document.createElement('button');b.textContent=x[1];b.dataset.l=x[0];b.onclick=function(){lang=x[0];show()};tabs.appendChild(b)});
+  fetch('songs.json').then(function(r){return r.json()}).then(function(j){DB=j;
+    var first=['mr','hi','kn'].filter(function(l){return (j[G]||{})[l]&&j[G][l].length})[0];if(first)lang=first;show()}).catch(function(){show()});
+}else{
+  if(Q){var only=ITEMS.filter(function(x){return x.id===Q});if(only.length){ITEMS=only;document.querySelector('header').style.display='none'}}
+  ITEMS.forEach(function(it){makeCard(it,M)});
+}
 </script></body></html>
